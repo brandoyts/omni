@@ -1,0 +1,56 @@
+FROM php:8.3.10-fpm-alpine
+
+# Set the UID and GID from build arguments or environment variables
+ARG UID
+ARG GID
+ENV UID=${UID} \
+    GID=${GID}
+
+# Create a new user with the specified UID and GID
+RUN addgroup -g ${GID} --system intelli && \
+    adduser -G intelli --system -D -s /bin/sh -u ${UID} intelli
+
+# Install dependencies, PHP extensions, and Composer
+RUN apk update && apk add --no-cache \
+    curl \
+    git \
+    zip \
+    unzip \
+    libzip-dev \
+    icu-dev \
+    libpng-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    oniguruma-dev \
+    libxml2-dev \
+    gcc \
+    libc-dev \
+    make \
+    autoconf \
+    bash \
+    && docker-php-ext-configure gd \
+        --with-freetype=/usr/include/ \
+        --with-jpeg=/usr/include/ \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        bcmath \
+        gd \
+        zip \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && apk del gcc libc-dev make autoconf bash
+
+# Set working directory and copy application files
+WORKDIR /app
+COPY ./src ./
+
+# Ensure the user has permissions to the app directory
+RUN chown -R intelli:intelli /app
+
+# Switch to the non-root user
+USER intelli
+
+# Default command to start PHP-FPM
+# CMD ["php-fpm", "-y", "/usr/local/etc/php-fpm.conf", "-R"]

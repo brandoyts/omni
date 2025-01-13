@@ -1,0 +1,51 @@
+version: "3"
+networks:
+  application:
+    driver: bridge
+volumes:
+  pgsql-data:
+services:
+  app:
+    container_name: app_tier
+    build:
+      context: .
+      dockerfile: dockerfile
+      args:
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    ports:
+      - 8000:8000
+    volumes:
+      - ./src:/app
+      - ~/.aws:/root/.aws:ro
+    environment:
+      - AWS_PROFILE=default
+      - AWS_REGION=your-region
+    depends_on:
+      - db
+    networks:
+      - application
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        composer install
+        php artisan migrate
+        php artisan serve --host=0.0.0.0 --port=8000
+  db:
+    container_name: db_tier
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgsql-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=intelli_c3_fmi
+    networks:
+      - application
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
