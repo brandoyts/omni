@@ -28,7 +28,8 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        composer install
+        # composer install
+        composer create-project laravel/laravel .
         php artisan migrate
         php artisan serve --host=0.0.0.0 --port=8000
   db:
