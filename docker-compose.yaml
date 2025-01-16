@@ -1,12 +1,12 @@
-version: "3"
 networks:
   application:
     driver: bridge
+
 volumes:
-  pgsql-data:
+  omni-pgsql-data:
+
 services:
-  app:
-    container_name: app_tier
+  laravel:
     build:
       context: .
       dockerfile: dockerfile
@@ -14,7 +14,8 @@ services:
         - UID=${UID:-1000}
         - GID=${GID:-1000}
     ports:
-      - 8000:8000
+      - 8000:8000 # for api routing
+      - 8080:8080 # for websocket
     volumes:
       - ./src:/app
       - ~/.aws:/root/.aws:ro
@@ -22,27 +23,26 @@ services:
       - AWS_PROFILE=default
       - AWS_REGION=your-region
     depends_on:
-      - db
+      - postgres
     networks:
       - application
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        # composer install
-        composer create-project laravel/laravel .
-        php artisan migrate
+        composer install
+        # composer create-project laravel/laravel .
+        php artisan migrate --seed
         php artisan serve --host=0.0.0.0 --port=8000
-  db:
-    container_name: db_tier
+  postgres:
     image: postgres:15
     ports:
       - "5432:5432"
     volumes:
-      - pgsql-data:/var/lib/postgresql/data
+      - omni-pgsql-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=intelli_c3_fmi
+      - POSTGRES_DB=omni
     networks:
       - application
     healthcheck:
