@@ -9,6 +9,7 @@ class CaseIop extends Model
     protected $table = "cases";
 
     protected $fillable = [
+        'iop_code',
         'description',
         'switchboard_categories_id',
     ];

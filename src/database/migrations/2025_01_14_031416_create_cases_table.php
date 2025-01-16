@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('cases', function (Blueprint $table) {
             $table->id();
+            $table->string("iop_code");
             $table->string("description");
             $table->integer("switchboard_categories_id")->unsigned();
             $table->timestamps();

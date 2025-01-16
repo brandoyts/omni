@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Events\CreateCase;
+use App\Events\SelfCaseCreated;
 use App\Repositories\Contracts\CaseRepositoryInterface;
 
 class CaseService
@@ -15,7 +17,9 @@ class CaseService
 
     public function createSelfCase(array $data)
     {
-        return $this->caseRepository->create($data);
+        $case = $this->caseRepository->create($data);
+        SelfCaseCreated::dispatch($case);
+        return $case;
     }
 
     public function update(array $data, $id)
@@ -38,3 +42,5 @@ class CaseService
         return $this->caseRepository->find($id);
     }
 }
+
+

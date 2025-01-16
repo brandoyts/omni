@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Events\CreateCase;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateSelfCaseRequest;
 use App\Services\CaseService;
@@ -45,8 +44,6 @@ class CaseController extends Controller
     public function createSelfCase(CreateSelfCaseRequest $request)
     {
         $selfCase = $this->caseService->createSelfCase($request->all());
-
-        broadcast(new CreateCase($selfCase));
 
         return response()->json([
             "message" => "success",
